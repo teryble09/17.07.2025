@@ -1,0 +1,5 @@
+port: 8080
+max_current_tasks: 3
+allowed_mime_types:
+  - image/jpeg
+  - image/png
