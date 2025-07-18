@@ -38,8 +38,8 @@ func main() {
 	r.Use(middleware.AllowContentType("application/json"))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Route("tasks", func(r chi.Router) {
-		r.Post("", handler.CreateTask(app))
+	r.Route("/tasks", func(r chi.Router) {
+		r.Post("/", handler.CreateTask(app))
 	})
 
 	logger.Info("Starting http server on port " + cfg.Port)
