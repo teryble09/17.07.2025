@@ -9,7 +9,7 @@ import (
 )
 
 type App struct {
-	Cfg       config.Config
+	Cfg       *config.Config
 	Logger    *slog.Logger
 	Storage   model.TaskRepository
 	Semaphore *semaphore.Weighted

@@ -1,11 +1,11 @@
 package model
 
 const (
-	Waiting = iota
-	Loaded
-	Processing
-	FailedLoad
-	NotAllowedType
+	Waiting        = "waiting"
+	Loaded         = "loaded"
+	FailedToLoad   = "failed to load"
+	NotAllowedType = "not allowed type"
+	Archived       = "archived"
 )
 
 type TaskID struct {
@@ -13,7 +13,11 @@ type TaskID struct {
 }
 
 type Task struct {
-	Urls    []string
-	Status  []int
+	Urls    []Url
 	Archive []byte
+}
+
+type Url struct {
+	Address string `json:"address"`
+	Status  string `json:"status"`
 }

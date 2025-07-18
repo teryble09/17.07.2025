@@ -11,6 +11,7 @@ import (
 	"github.com/teryble09/17.07.2025/internal/archiver"
 	"github.com/teryble09/17.07.2025/internal/archiver/handler"
 	"github.com/teryble09/17.07.2025/internal/config"
+	"github.com/teryble09/17.07.2025/internal/storage"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -23,11 +24,15 @@ func main() {
 	cfg := config.MustLoad(curPath + "config.yaml")
 
 	logger := slog.Default()
-
 	sem := semaphore.NewWeighted(int64(cfg.MaxCurrentTasks))
-	_ = sem
+	stor := storage.NewInMemoryStorage(cfg.MaxURLsInTask)
 
-	app := archiver.App{}
+	app := archiver.App{
+		Cfg:       cfg,
+		Logger:    logger,
+		Semaphore: sem,
+		Storage:   stor,
+	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.AllowContentType("application/json"))
@@ -35,7 +40,6 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Route("tasks", func(r chi.Router) {
 		r.Post("", handler.CreateTask(app))
-
 	})
 
 	logger.Info("Starting http server on port " + cfg.Port)

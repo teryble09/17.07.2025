@@ -13,8 +13,8 @@ type InMemoryStorage struct {
 	sync.RWMutex
 }
 
-func NewInMemoryStorage() InMemoryStorage {
-	return InMemoryStorage{storage: make(map[model.TaskID]model.Task, 1000)}
+func NewInMemoryStorage(maxUrl int) *InMemoryStorage {
+	return &InMemoryStorage{storage: make(map[model.TaskID]model.Task, 1000), maxUrl: maxUrl}
 }
 
 func (s *InMemoryStorage) CreateTask() model.TaskID {
@@ -31,25 +31,24 @@ func (s *InMemoryStorage) CreateTask() model.TaskID {
 	}
 }
 
-func (s *InMemoryStorage) AddUrl(id model.TaskID, url string) error {
+func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 	s.Lock()
 	defer s.Unlock()
 	task, ok := s.storage[id]
 	if !ok {
 		return model.ErrTaskNotFound
 	}
-	task.Urls = append(task.Urls, url)
-	task.Status = append(task.Status, model.Waiting)
+	task.Urls = append(task.Urls, model.Url{Address: url, Status: model.Waiting})
 	s.storage[id] = task
 	return nil
 }
 
-func (s *InMemoryStorage) Status(id model.TaskID) ([]string, []int, error) {
-	s.Lock()
-	defer s.Unlock()
+func (s *InMemoryStorage) Status(id model.TaskID) ([]model.Url, error) {
+	s.RLock()
+	defer s.RUnlock()
 	task, ok := s.storage[id]
 	if !ok {
-		return nil, nil, model.ErrTaskNotFound
+		return nil, model.ErrTaskNotFound
 	}
-	return task.Urls, task.Status, nil
+	return task.Urls, nil
 }

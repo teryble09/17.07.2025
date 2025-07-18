@@ -5,7 +5,7 @@ import "errors"
 type TaskRepository interface {
 	CreateTask() TaskID
 	AddURL(TaskID, string) error
-	Status(TaskID) error
+	Status(TaskID) ([]Url, error)
 }
 
 var (
