@@ -7,4 +7,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 )
 
-require github.com/google/uuid v1.6.0 // indirect
+require (
+	github.com/google/uuid v1.6.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+)

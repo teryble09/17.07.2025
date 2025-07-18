@@ -8,15 +8,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/teryble09/17.07.2025/internal/archiver/model"
+	"github.com/teryble09/17.07.2025/internal/archiver"
+	"github.com/teryble09/17.07.2025/internal/archiver/handler"
 	"github.com/teryble09/17.07.2025/internal/config"
+	"golang.org/x/sync/semaphore"
 )
-
-type App struct {
-	Cfg     config.Config
-	Logger  *slog.Logger
-	Storage model.TaskRepository
-}
 
 func main() {
 	_, curPath, _, _ := runtime.Caller(0)
@@ -28,10 +24,19 @@ func main() {
 
 	logger := slog.Default()
 
+	sem := semaphore.NewWeighted(int64(cfg.MaxCurrentTasks))
+	_ = sem
+
+	app := archiver.App{}
+
 	r := chi.NewRouter()
 	r.Use(middleware.AllowContentType("application/json"))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Route("tasks", func(r chi.Router) {
+		r.Post("", handler.CreateTask(app))
+
+	})
 
 	logger.Info("Starting http server on port " + cfg.Port)
 	err := http.ListenAndServe("0.0.0.0:"+cfg.Port, r)

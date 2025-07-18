@@ -1,7 +1,7 @@
 package model
 
 type TaskRepository interface {
-	CreateTask() string
-	AddURL(string) error
-	Status(string)
+	CreateTask() TaskID
+	AddURL(TaskID) error
+	Status(TaskID)
 }
