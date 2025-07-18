@@ -11,6 +11,11 @@ import (
 	"github.com/teryble09/17.07.2025/internal/config"
 )
 
+type App struct {
+	cfg    config.Config
+	logger slog.Logger
+}
+
 func main() {
 	_, curPath, _, _ := runtime.Caller(0)
 	curPath, found := strings.CutSuffix(curPath, "cmd/archiver/main.go")
