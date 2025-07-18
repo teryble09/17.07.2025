@@ -1,7 +1,8 @@
 package model
 
 const (
-	Loaded = iota
+	Waiting = iota
+	Loaded
 	Processing
 	FailedLoad
 	NotAllowedType
@@ -12,7 +13,7 @@ type TaskID struct {
 }
 
 type Task struct {
-	urls    []string
-	status  []int
-	archive []byte
+	Urls    []string
+	Status  []int
+	Archive []byte
 }
