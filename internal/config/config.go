@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Port             string   `yaml:"port"`
 	MaxCurrentTasks  int      `yaml:"max_current_tasks"`
+	MaxURLsInTask    int      `yaml:"max_urls_in_task"`
 	AllowedMIMETypes []string `yaml:"allowed_mime_types"`
 }
 
