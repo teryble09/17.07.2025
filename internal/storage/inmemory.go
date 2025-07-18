@@ -20,6 +20,7 @@ func NewInMemoryStorage(maxUrl int) *InMemoryStorage {
 func (s *InMemoryStorage) CreateTask() model.TaskID {
 	s.Lock()
 	defer s.Unlock()
+
 	id := model.TaskID{Id: uuid.NewString()}
 	for {
 		if _, ok := s.storage[id]; ok {
@@ -34,10 +35,15 @@ func (s *InMemoryStorage) CreateTask() model.TaskID {
 func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 	s.Lock()
 	defer s.Unlock()
+
 	task, ok := s.storage[id]
 	if !ok {
 		return model.ErrTaskNotFound
 	}
+	if len(task.Urls) >= s.maxUrl {
+		return model.ErrMaximumTaskNumberReached
+	}
+
 	task.Urls = append(task.Urls, model.Url{Address: url, Status: model.Waiting})
 	s.storage[id] = task
 	return nil
@@ -46,6 +52,7 @@ func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 func (s *InMemoryStorage) Status(id model.TaskID) ([]model.Url, error) {
 	s.RLock()
 	defer s.RUnlock()
+
 	task, ok := s.storage[id]
 	if !ok {
 		return nil, model.ErrTaskNotFound

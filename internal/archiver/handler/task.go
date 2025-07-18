@@ -24,6 +24,7 @@ func CreateTask(app archiver.App) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonID)
 	}
 }
