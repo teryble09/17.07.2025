@@ -12,11 +12,6 @@ type TaskID struct {
 	Id string `json:"id"`
 }
 
-type Task struct {
-	Urls    []Url
-	Archive []byte
-}
-
 type Url struct {
 	Address string `json:"address"`
 	Status  string `json:"status"`

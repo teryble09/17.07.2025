@@ -25,6 +25,9 @@ func CreateTask(app archiver.App) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonID)
+		_, err = w.Write(jsonID)
+		if err != nil {
+			app.Logger.Error("Could not write jsonID into ResponseWriter", "error", err.Error())
+		}
 	}
 }

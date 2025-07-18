@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"archive/zip"
+	"bytes"
+	"errors"
 	"sync"
 
 	"github.com/google/uuid"
@@ -8,13 +11,23 @@ import (
 )
 
 type InMemoryStorage struct {
-	storage map[model.TaskID]model.Task
+	storage map[model.TaskID]Task
 	maxUrl  int
 	sync.RWMutex
 }
 
+type Task struct {
+	urls          []model.Url
+	archive       *bytes.Buffer
+	archiveWriter *zip.Writer
+	mutex         *sync.RWMutex
+}
+
 func NewInMemoryStorage(maxUrl int) *InMemoryStorage {
-	return &InMemoryStorage{storage: make(map[model.TaskID]model.Task, 1000), maxUrl: maxUrl}
+	return &InMemoryStorage{
+		storage: make(map[model.TaskID]Task, 1000),
+		maxUrl:  maxUrl,
+	}
 }
 
 func (s *InMemoryStorage) CreateTask() model.TaskID {
@@ -26,7 +39,8 @@ func (s *InMemoryStorage) CreateTask() model.TaskID {
 		if _, ok := s.storage[id]; ok {
 			id = model.TaskID{Id: uuid.NewString()}
 		} else {
-			s.storage[id] = model.Task{}
+			buf := bytes.NewBuffer([]byte{})
+			s.storage[id] = Task{urls: nil, archive: buf, archiveWriter: zip.NewWriter(buf), mutex: &sync.RWMutex{}}
 			return id
 		}
 	}
@@ -40,22 +54,79 @@ func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 	if !ok {
 		return model.ErrTaskNotFound
 	}
-	if len(task.Urls) >= s.maxUrl {
+
+	task.mutex.Lock()
+	defer task.mutex.Unlock()
+
+	if len(task.urls) == s.maxUrl {
 		return model.ErrMaximumTaskNumberReached
 	}
 
-	task.Urls = append(task.Urls, model.Url{Address: url, Status: model.Waiting})
+	task.urls = append(task.urls, model.Url{Address: url, Status: model.Waiting})
 	s.storage[id] = task
 	return nil
 }
 
 func (s *InMemoryStorage) Status(id model.TaskID) ([]model.Url, error) {
 	s.RLock()
-	defer s.RUnlock()
 
 	task, ok := s.storage[id]
 	if !ok {
 		return nil, model.ErrTaskNotFound
 	}
-	return task.Urls, nil
+
+	s.RUnlock()
+
+	task.mutex.RLock()
+	defer task.mutex.RUnlock()
+
+	return task.urls, nil
+}
+
+func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
+	s.RLock()
+
+	task, ok := s.storage[id]
+	if !ok {
+		return nil, model.ErrTaskNotFound
+	}
+
+	s.RUnlock()
+
+	task.mutex.RLock()
+	defer task.mutex.RUnlock()
+
+	for _, url := range task.urls {
+		if url.Status == model.Waiting || url.Status == model.Loaded {
+			return nil, model.ErrArchiveNotReady
+		}
+	}
+
+	return task.archive.Bytes(), nil
+}
+
+func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file []byte) error {
+	s.RLock()
+
+	task, ok := s.storage[id]
+	if !ok {
+		return model.ErrTaskNotFound
+	}
+
+	s.RUnlock()
+
+	task.mutex.Lock()
+	defer task.mutex.Unlock()
+
+	f, err := task.archiveWriter.Create(string(filename))
+	if err != nil {
+		return errors.Join(model.ErrFailedWrite, err)
+	}
+
+	_, err = f.Write(file)
+	if err != nil {
+		return errors.Join(model.ErrFailedWrite, err)
+	}
+
+	return nil
 }
