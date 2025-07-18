@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/teryble09/17.07.2025/internal/config"
 )
 
@@ -21,7 +22,13 @@ func main() {
 	logger := slog.Default()
 
 	r := chi.NewRouter()
+	r.Use(middleware.AllowContentType("application/json"))
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	logger.Info("Starting http server on port " + cfg.Port)
-	http.ListenAndServe(cfg.Port, r)
+	err := http.ListenAndServe("0.0.0.0:"+cfg.Port, r)
+	if err != nil {
+		panic(err.Error())
+	}
 }
