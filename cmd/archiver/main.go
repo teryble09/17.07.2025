@@ -8,12 +8,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/teryble09/17.07.2025/internal/archiver/model"
 	"github.com/teryble09/17.07.2025/internal/config"
 )
 
 type App struct {
-	cfg    config.Config
-	logger slog.Logger
+	Cfg     config.Config
+	Logger  *slog.Logger
+	Storage model.TaskRepository
 }
 
 func main() {
