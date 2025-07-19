@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/teryble09/17.07.2025/internal/archiver/model"
+	"github.com/teryble09/17.07.2025/internal/archiver/repository"
 )
 
 type InMemoryStorage struct {
@@ -52,14 +53,14 @@ func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 
 	task, ok := s.storage[id]
 	if !ok {
-		return model.ErrTaskNotFound
+		return repository.ErrTaskNotFound
 	}
 
 	task.mutex.Lock()
 	defer task.mutex.Unlock()
 
 	if len(task.urls) == s.maxUrl {
-		return model.ErrMaximumTaskNumberReached
+		return repository.ErrMaximumTaskNumberReached
 	}
 
 	task.urls = append(task.urls, model.Url{Address: url, Status: model.Waiting})
@@ -72,7 +73,7 @@ func (s *InMemoryStorage) Status(id model.TaskID) ([]model.Url, error) {
 
 	task, ok := s.storage[id]
 	if !ok {
-		return nil, model.ErrTaskNotFound
+		return nil, repository.ErrTaskNotFound
 	}
 
 	s.RUnlock()
@@ -88,7 +89,7 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 
 	task, ok := s.storage[id]
 	if !ok {
-		return nil, model.ErrTaskNotFound
+		return nil, repository.ErrTaskNotFound
 	}
 
 	s.RUnlock()
@@ -98,7 +99,7 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 
 	for _, url := range task.urls {
 		if url.Status == model.Waiting || url.Status == model.Loaded {
-			return nil, model.ErrArchiveNotReady
+			return nil, repository.ErrArchiveNotReady
 		}
 	}
 
@@ -110,7 +111,7 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file 
 
 	task, ok := s.storage[id]
 	if !ok {
-		return model.ErrTaskNotFound
+		return repository.ErrTaskNotFound
 	}
 
 	s.RUnlock()
@@ -120,12 +121,12 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file 
 
 	f, err := task.archiveWriter.Create(string(filename))
 	if err != nil {
-		return errors.Join(model.ErrFailedWrite, err)
+		return errors.Join(repository.ErrFailedWrite, err)
 	}
 
 	_, err = f.Write(file)
 	if err != nil {
-		return errors.Join(model.ErrFailedWrite, err)
+		return errors.Join(repository.ErrFailedWrite, err)
 	}
 
 	return nil

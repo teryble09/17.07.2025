@@ -3,7 +3,7 @@ package service
 import (
 	"log/slog"
 
-	"github.com/teryble09/17.07.2025/internal/archiver/model"
+	"github.com/teryble09/17.07.2025/internal/archiver/repository"
 	"github.com/teryble09/17.07.2025/internal/config"
 	"golang.org/x/sync/semaphore"
 )
@@ -11,6 +11,6 @@ import (
 type TaskService struct {
 	Cfg       *config.Config
 	Logger    *slog.Logger
-	Storage   model.TaskRepository
+	Storage   repository.TaskRepository
 	Semaphore *semaphore.Weighted
 }
