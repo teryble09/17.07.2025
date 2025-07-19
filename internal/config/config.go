@@ -11,6 +11,10 @@ type Config struct {
 	MaxCurrentTasks  int      `yaml:"max_current_tasks"`
 	MaxURLsInTask    int      `yaml:"max_urls_in_task"`
 	AllowedMIMETypes []string `yaml:"allowed_mime_types"`
+
+	//In milliseconds
+	RetryWaitTime  int `yaml:"retry_wait_time"`
+	MaxRetryAmount int `yaml:"max_retry_amount"`
 }
 
 func MustLoad(configPath string) *Config {

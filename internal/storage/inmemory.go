@@ -120,7 +120,7 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 	defer task.mutex.RUnlock()
 
 	for _, url := range task.urls {
-		if url.Status == model.Waiting || url.Status == model.Loaded {
+		if url.Status == model.Waiting {
 			return nil, repository.ErrArchiveNotReady
 		}
 	}

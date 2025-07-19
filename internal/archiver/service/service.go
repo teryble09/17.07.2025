@@ -47,5 +47,7 @@ func (srv *TaskService) AddURL(req dto.AddURLRequest) (dto.AddURLResponse, error
 		}
 	}
 
+	go LoadFileAndArchive(srv, model.TaskID{Id: req.TaskId}, req.Adress)
+
 	return dto.AddURLResponse{}, nil
 }

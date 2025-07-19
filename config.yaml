@@ -4,3 +4,5 @@ max_urls_in_task: 3
 allowed_mime_types:
   - image/jpeg
   - image/png
+retry_wait_time: 1000
+max_retry_amount: 3

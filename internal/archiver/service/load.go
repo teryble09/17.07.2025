@@ -18,7 +18,43 @@ var (
 )
 
 func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
+	defer srv.Semaphore.Release(1)
 
+	file := []byte{}
+	filename := ""
+
+	fn := func() error {
+		var err error
+		client := http.Client{Timeout: 5 * time.Second}
+		filename, file, err = LoadFile(client, srv.Cfg.AllowedMIMETypes, url)
+		if err == ErrNotAllowedMimeType {
+			srv.Logger.Warn("Not allowed type", "utl", url)
+			srv.Storage.ChangeStatus(id, url, model.NotAllowedType)
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	err := Retry(fn, time.Duration(srv.Cfg.RetryWaitTime*1_000_000), srv.Cfg.MaxRetryAmount)
+
+	if err == ErrFailedAllRetries {
+		srv.Logger.Warn("Failed to load file", "url", url)
+		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+		return
+	}
+
+	err = srv.Storage.WriteToArchive(id, []byte(filename), file)
+	if err != nil {
+		srv.Logger.Error("Failed to write loaded file", "url", url, "error", err.Error())
+		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+		return
+	}
+
+	srv.Logger.Info("Suceesfully loaded and wrote file", "url", url)
+	srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
 }
 
 func Retry(fn func() error, wait time.Duration, maxRetries int) error {
