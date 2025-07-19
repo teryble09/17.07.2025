@@ -46,5 +46,6 @@ func (srv *TaskService) AddURL(req dto.AddURLRequest) (dto.AddURLResponse, error
 			return dto.AddURLResponse{}, errors.Join(errors.New("Could not add url to task"), err)
 		}
 	}
+
 	return dto.AddURLResponse{}, nil
 }

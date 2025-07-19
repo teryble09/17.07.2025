@@ -84,6 +84,28 @@ func (s *InMemoryStorage) Status(id model.TaskID) ([]model.Url, error) {
 	return task.urls, nil
 }
 
+func (s *InMemoryStorage) ChangeStatus(id model.TaskID, url string, newStatus string) error {
+	s.RLock()
+
+	task, ok := s.storage[id]
+	if !ok {
+		return repository.ErrTaskNotFound
+	}
+
+	s.RUnlock()
+
+	task.mutex.Lock()
+	defer task.mutex.Unlock()
+
+	for i := range task.urls {
+		if task.urls[i].Address == url {
+			task.urls[i].Status = newStatus
+		}
+	}
+
+	return nil
+}
+
 func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 	s.RLock()
 

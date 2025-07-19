@@ -10,8 +10,9 @@ type TaskRepository interface {
 	CreateTask() model.TaskID
 	AddURL(model.TaskID, string) error
 	Status(model.TaskID) ([]model.Url, error)
+	ChangeStatus(id model.TaskID, url string, newStatus string) error
 	LoadArchive(model.TaskID) ([]byte, error)
-	WriteToArchive(id model.TaskID, fuliname []byte, file []byte) error
+	WriteToArchive(id model.TaskID, filename []byte, file []byte) error
 }
 
 var (
