@@ -1,4 +1,4 @@
-package archiver
+package service
 
 import (
 	"log/slog"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-type App struct {
+type TaskService struct {
 	Cfg       *config.Config
 	Logger    *slog.Logger
 	Storage   model.TaskRepository

@@ -9,10 +9,10 @@ const (
 )
 
 type TaskID struct {
-	Id string `json:"id"`
+	Id string
 }
 
 type Url struct {
-	Address string `json:"address"`
-	Status  string `json:"status"`
+	Address string
+	Status  string
 }
