@@ -1,7 +1,7 @@
 package dto
 
 type AddURLRequest struct {
-	TaskId string `json:"task_id"`
+	TaskId string
 	Adress string `json:"url"`
 }
 

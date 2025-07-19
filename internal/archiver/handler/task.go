@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/teryble09/17.07.2025/internal/archiver/dto"
 	"github.com/teryble09/17.07.2025/internal/archiver/service"
 )
@@ -47,6 +48,9 @@ func AddUrlToTask(srv service.TaskService) http.HandlerFunc {
 		}
 
 		var req dto.AddURLRequest
+		id := chi.URLParam(r, "task_id")
+		req.TaskId = id
+
 		err = json.Unmarshal(data, &req)
 		if err != nil {
 			srv.Logger.Warn("Could not unmarshall AddURLRequest", "error", err.Error())

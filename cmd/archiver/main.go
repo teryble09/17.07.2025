@@ -40,6 +40,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", handler.CreateTask(srv))
+		r.Post("/{task_id}/urls", handler.AddUrlToTask(srv))
 	})
 
 	logger.Info("Starting http server on port " + cfg.Port)
