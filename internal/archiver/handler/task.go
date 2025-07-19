@@ -86,6 +86,8 @@ func AddUrlToTask(srv service.TaskService) http.HandlerFunc {
 
 func GetStatus(srv service.TaskService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		w.Header().Set("Content-Type", "application/json")
 
 		var req dto.GetStatusRequest
 		id := chi.URLParam(r, "task_id")

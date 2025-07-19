@@ -23,6 +23,7 @@ var (
 	ErrTaskNotFound             = errors.New("task not found")
 	ErrUrlAlreadyExists         = errors.New("url already exists")
 	ErrMaximumTaskNumberReached = errors.New("maximum task number reached")
+	ErrArchiveNotReady          = errors.New("archive not ready")
 )
 
 func (srv *TaskService) CreateTask(req dto.CreateTaskRequest) (dto.CreateTaskResponse, error) {
@@ -61,4 +62,15 @@ func (srv *TaskService) GetStatus(req dto.GetStatusRequest) (dto.GetStatusRespon
 		return dto.GetStatusResponse{}, ErrTaskNotFound
 	}
 	return dto.GetStatusResponse{Urls: urls}, nil
+}
+
+func (srv *TaskService) GetArchive(req dto.GetArchiveRequest) (dto.GetArchiveResponse, error) {
+	buf, err := srv.Storage.LoadArchive(model.TaskID{Id: req.TaskId})
+	if err == repository.ErrArchiveNotReady {
+		return dto.GetArchiveResponse{}, ErrArchiveNotReady
+	}
+	if err == repository.ErrTaskNotFound {
+		return dto.GetArchiveResponse{}, ErrTaskNotFound
+	}
+	return dto.GetArchiveResponse{Data: buf}, nil
 }

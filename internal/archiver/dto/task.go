@@ -21,3 +21,11 @@ type GetStatusRequest struct {
 type GetStatusResponse struct {
 	Urls []model.Url `json:"urls"`
 }
+
+type GetArchiveRequest struct {
+	TaskId string
+}
+
+type GetArchiveResponse struct {
+	Data []byte
+}

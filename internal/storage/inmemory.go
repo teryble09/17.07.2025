@@ -150,6 +150,10 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file 
 
 	task.archiveWriteCount++
 
+	if task.archiveWriteCount == s.maxUrl {
+		task.archiveWriter.Close()
+	}
+
 	f, err := task.archiveWriter.Create(string(filename))
 	if err != nil {
 		return task.archiveWriteCount == s.maxUrl, errors.Join(repository.ErrFailedWrite, err)
