@@ -18,10 +18,11 @@ type InMemoryStorage struct {
 }
 
 type Task struct {
-	urls          []model.Url
-	archive       *bytes.Buffer
-	archiveWriter *zip.Writer
-	mutex         *sync.RWMutex
+	urls              []model.Url
+	archive           *bytes.Buffer
+	archiveWriter     *zip.Writer
+	archiveWriteCount int
+	mutex             *sync.RWMutex
 }
 
 func NewInMemoryStorage(maxUrl int) *InMemoryStorage {
@@ -128,12 +129,12 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 	return task.archive.Bytes(), nil
 }
 
-func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file []byte) error {
+func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file []byte) (bool, error) {
 	s.RLock()
 
 	task, ok := s.storage[id]
 	if !ok {
-		return repository.ErrTaskNotFound
+		return false, repository.ErrTaskNotFound
 	}
 
 	s.RUnlock()
@@ -141,15 +142,17 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file 
 	task.mutex.Lock()
 	defer task.mutex.Unlock()
 
+	task.archiveWriteCount++
+
 	f, err := task.archiveWriter.Create(string(filename))
 	if err != nil {
-		return errors.Join(repository.ErrFailedWrite, err)
+		return task.archiveWriteCount == s.maxUrl, errors.Join(repository.ErrFailedWrite, err)
 	}
 
 	_, err = f.Write(file)
 	if err != nil {
-		return errors.Join(repository.ErrFailedWrite, err)
+		return task.archiveWriteCount == s.maxUrl, errors.Join(repository.ErrFailedWrite, err)
 	}
 
-	return nil
+	return task.archiveWriteCount == s.maxUrl, nil
 }

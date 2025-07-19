@@ -18,8 +18,6 @@ var (
 )
 
 func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
-	defer srv.Semaphore.Release(1)
-
 	file := []byte{}
 	filename := ""
 
@@ -46,15 +44,21 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 		return
 	}
 
-	err = srv.Storage.WriteToArchive(id, []byte(filename), file)
+	archiveFinished, err := srv.Storage.WriteToArchive(id, []byte(filename), file)
+
 	if err != nil {
 		srv.Logger.Error("Failed to write loaded file", "url", url, "error", err.Error())
 		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
 		return
 	}
 
+	if archiveFinished {
+		srv.Semaphore.Release(1)
+	}
+
 	srv.Logger.Info("Suceesfully loaded and wrote file", "url", url)
 	srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+
 }
 
 func Retry(fn func() error, wait time.Duration, maxRetries int) error {

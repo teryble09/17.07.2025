@@ -79,3 +79,13 @@ func AddUrlToTask(srv service.TaskService) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func GetStatus(srv service.TaskService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var req dto.GetStatusRequest
+		id := chi.URLParam(r, "task_id")
+		req.TaskId = id
+
+	}
+}

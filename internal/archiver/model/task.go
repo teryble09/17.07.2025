@@ -12,6 +12,6 @@ type TaskID struct {
 }
 
 type Url struct {
-	Address string
-	Status  string
+	Address string `json:"address"`
+	Status  string `json:"status"`
 }

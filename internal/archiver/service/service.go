@@ -51,3 +51,11 @@ func (srv *TaskService) AddURL(req dto.AddURLRequest) (dto.AddURLResponse, error
 
 	return dto.AddURLResponse{}, nil
 }
+
+func (srv *TaskService) GetStatus(req dto.GetStatusRequest) (dto.GetStatusResponse, error) {
+	urls, err := srv.Storage.Status(model.TaskID{Id: req.TaskId})
+	if err == repository.ErrTaskNotFound {
+		return dto.GetStatusResponse{}, ErrTaskNotFound
+	}
+	return dto.GetStatusResponse{Urls: urls}, nil
+}
