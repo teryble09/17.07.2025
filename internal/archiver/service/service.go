@@ -1,8 +1,11 @@
 package service
 
 import (
+	"errors"
 	"log/slog"
 
+	"github.com/teryble09/17.07.2025/internal/archiver/dto"
+	"github.com/teryble09/17.07.2025/internal/archiver/model"
 	"github.com/teryble09/17.07.2025/internal/archiver/repository"
 	"github.com/teryble09/17.07.2025/internal/config"
 	"golang.org/x/sync/semaphore"
@@ -13,4 +16,35 @@ type TaskService struct {
 	Logger    *slog.Logger
 	Storage   repository.TaskRepository
 	Semaphore *semaphore.Weighted
+}
+
+var (
+	ErrServerBusy               = errors.New("server is busy")
+	ErrTaskNotFound             = errors.New("task not found")
+	ErrMaximumTaskNumberReached = errors.New("maximum task number reached")
+)
+
+func (srv *TaskService) CreateTask(req dto.CreateTaskRequest) (dto.CreateTaskResponse, error) {
+	ok := srv.Semaphore.TryAcquire(1)
+	if !ok {
+		return dto.CreateTaskResponse{}, ErrServerBusy
+	}
+
+	TaskID := srv.Storage.CreateTask()
+	return dto.CreateTaskResponse{Id: TaskID.Id}, nil
+}
+
+func (srv *TaskService) AddURL(req dto.AddURLRequest) (dto.AddURLResponse, error) {
+	err := srv.Storage.AddURL(model.TaskID{Id: req.TaskId}, req.Adress)
+	if err != nil {
+		switch err {
+		case repository.ErrTaskNotFound:
+			return dto.AddURLResponse{}, ErrTaskNotFound
+		case repository.ErrMaximumTaskNumberReached:
+			return dto.AddURLResponse{}, ErrMaximumTaskNumberReached
+		default:
+			return dto.AddURLResponse{}, errors.Join(errors.New("Could not add url to task"), err)
+		}
+	}
+	return dto.AddURLResponse{}, nil
 }
