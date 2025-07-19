@@ -17,6 +17,7 @@ type TaskRepository interface {
 
 var (
 	ErrTaskNotFound             = errors.New("task not found")
+	ErrUrlAlreadyExists         = errors.New("url already exist")
 	ErrMaximumTaskNumberReached = errors.New("maximum task number reached")
 	ErrArchiveNotReady          = errors.New("archive not ready")
 	ErrFailedWrite              = errors.New("error writing")

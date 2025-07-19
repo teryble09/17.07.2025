@@ -41,6 +41,7 @@ func main() {
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", handler.CreateTask(srv))
 		r.Post("/{task_id}/urls", handler.AddUrlToTask(srv))
+		r.Get("/{task_id}/", handler.GetStatus(srv))
 	})
 
 	logger.Info("Starting http server on port " + cfg.Port)

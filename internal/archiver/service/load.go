@@ -28,7 +28,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 		if err == ErrNotAllowedMimeType {
 			srv.Logger.Warn("Not allowed type", "utl", url)
 			srv.Storage.ChangeStatus(id, url, model.NotAllowedType)
-			return nil
+			return ErrNotAllowedMimeType
 		}
 		if err != nil {
 			return err
@@ -57,7 +57,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 	}
 
 	srv.Logger.Info("Suceesfully loaded and wrote file", "url", url)
-	srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+	srv.Storage.ChangeStatus(id, url, model.Archived)
 
 }
 

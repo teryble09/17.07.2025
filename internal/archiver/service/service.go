@@ -21,6 +21,7 @@ type TaskService struct {
 var (
 	ErrServerBusy               = errors.New("server is busy")
 	ErrTaskNotFound             = errors.New("task not found")
+	ErrUrlAlreadyExists         = errors.New("url already exists")
 	ErrMaximumTaskNumberReached = errors.New("maximum task number reached")
 )
 
@@ -38,6 +39,8 @@ func (srv *TaskService) AddURL(req dto.AddURLRequest) (dto.AddURLResponse, error
 	err := srv.Storage.AddURL(model.TaskID{Id: req.TaskId}, req.Adress)
 	if err != nil {
 		switch err {
+		case repository.ErrUrlAlreadyExists:
+			return dto.AddURLResponse{}, ErrUrlAlreadyExists
 		case repository.ErrTaskNotFound:
 			return dto.AddURLResponse{}, ErrTaskNotFound
 		case repository.ErrMaximumTaskNumberReached:

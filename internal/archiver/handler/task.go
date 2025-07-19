@@ -69,6 +69,10 @@ func AddUrlToTask(srv service.TaskService) http.HandlerFunc {
 				srv.Logger.Warn("Trying to access to not existing task")
 				w.WriteHeader(http.StatusBadRequest)
 				return
+			case service.ErrUrlAlreadyExists:
+				srv.Logger.Warn("Trying to add already existing url")
+				w.WriteHeader(http.StatusBadRequest)
+				return
 			default:
 				srv.Logger.Error(err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
@@ -86,6 +90,24 @@ func GetStatus(srv service.TaskService) http.HandlerFunc {
 		var req dto.GetStatusRequest
 		id := chi.URLParam(r, "task_id")
 		req.TaskId = id
+		resp, err := srv.GetStatus(req)
+		if err != nil {
+			srv.Logger.Warn("Trying to access to not existing task")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
+		jsonStatuses, err := json.Marshal(resp)
+		if err != nil {
+			srv.Logger.Error("Could not marshall statuses", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(jsonStatuses)
+		if err != nil {
+			srv.Logger.Error("Could not write jsonStatuses into ResponseWriter", "error", err.Error())
+		}
 	}
 }

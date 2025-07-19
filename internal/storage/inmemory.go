@@ -64,6 +64,12 @@ func (s *InMemoryStorage) AddURL(id model.TaskID, url string) error {
 		return repository.ErrMaximumTaskNumberReached
 	}
 
+	for _, v := range task.urls {
+		if v.Address == url {
+			return repository.ErrUrlAlreadyExists
+		}
+	}
+
 	task.urls = append(task.urls, model.Url{Address: url, Status: model.Waiting})
 	s.storage[id] = task
 	return nil
