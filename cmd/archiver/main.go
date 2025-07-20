@@ -42,6 +42,7 @@ func main() {
 		r.Post("/", handler.CreateTask(srv))
 		r.Post("/{task_id}/urls", handler.AddUrlToTask(srv))
 		r.Get("/{task_id}/", handler.GetStatus(srv))
+		r.Get("/{task_id}/archive", handler.GetArchive(srv))
 	})
 
 	logger.Info("Starting http server on port " + cfg.Port)

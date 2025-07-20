@@ -5,6 +5,7 @@ import (
 	"errors"
 	"mime"
 	"net/http"
+	"regexp"
 	"slices"
 	"time"
 
@@ -44,7 +45,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 		return
 	}
 
-	archiveFinished, err := srv.Storage.WriteToArchive(id, []byte(filename), file)
+	archiveFinished, err := srv.Storage.WriteToArchive(id, filename, file)
 
 	if err != nil {
 		srv.Logger.Error("Failed to write loaded file", "url", url, "error", err.Error())
@@ -102,7 +103,7 @@ func LoadFile(client http.Client, allowedMIMETypes []string, url string) (filena
 		return "", nil, err
 	}
 
-	filename = uuid.NewString() + extensions[0]
+	filename = sanitizeFilename(uuid.NewString()) + extensions[0]
 	buf := bytes.NewBuffer([]byte{})
 	_, err = buf.ReadFrom(resp.Body)
 	if err != nil {
@@ -110,4 +111,14 @@ func LoadFile(client http.Client, allowedMIMETypes []string, url string) (filena
 	}
 
 	return filename, buf.Bytes(), nil
+}
+
+func sanitizeFilename(name string) string {
+	re := regexp.MustCompile(`[<>:"/\\|?*\x00-\x1F]`)
+	name = re.ReplaceAllString(name, "_")
+
+	if len(name) > 200 {
+		name = name[:200]
+	}
+	return name
 }

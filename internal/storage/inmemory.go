@@ -135,7 +135,7 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 	return task.archive.Bytes(), nil
 }
 
-func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file []byte) (bool, error) {
+func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename string, file []byte) (bool, error) {
 	s.RLock()
 
 	task, ok := s.storage[id]
@@ -149,20 +149,21 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename []byte, file 
 	defer task.mutex.Unlock()
 
 	task.archiveWriteCount++
+	archiveFinished := task.archiveWriteCount == s.maxUrl
 
-	if task.archiveWriteCount == s.maxUrl {
-		task.archiveWriter.Close()
+	if archiveFinished {
+		defer task.archiveWriter.Close()
 	}
 
-	f, err := task.archiveWriter.Create(string(filename))
+	f, err := task.archiveWriter.Create(filename)
 	if err != nil {
-		return task.archiveWriteCount == s.maxUrl, errors.Join(repository.ErrFailedWrite, err)
+		return archiveFinished, errors.Join(repository.ErrFailedWrite, err)
 	}
 
 	_, err = f.Write(file)
 	if err != nil {
-		return task.archiveWriteCount == s.maxUrl, errors.Join(repository.ErrFailedWrite, err)
+		return archiveFinished, errors.Join(repository.ErrFailedWrite, err)
 	}
 
-	return task.archiveWriteCount == s.maxUrl, nil
+	return archiveFinished, nil
 }
