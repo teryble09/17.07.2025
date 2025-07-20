@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
+	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -21,7 +22,7 @@ type Task struct {
 	urls              []model.Url
 	archive           *bytes.Buffer
 	archiveWriter     *zip.Writer
-	archiveWriteCount int
+	archiveWriteCount *int
 	mutex             *sync.RWMutex
 }
 
@@ -42,7 +43,7 @@ func (s *InMemoryStorage) CreateTask() model.TaskID {
 			id = model.TaskID{Id: uuid.NewString()}
 		} else {
 			buf := bytes.NewBuffer([]byte{})
-			s.storage[id] = Task{urls: nil, archive: buf, archiveWriter: zip.NewWriter(buf), mutex: &sync.RWMutex{}}
+			s.storage[id] = Task{archiveWriteCount: new(int), archive: buf, archiveWriter: zip.NewWriter(buf), mutex: &sync.RWMutex{}}
 			return id
 		}
 	}
@@ -148,11 +149,17 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename string, file 
 	task.mutex.Lock()
 	defer task.mutex.Unlock()
 
-	task.archiveWriteCount++
-	archiveFinished := task.archiveWriteCount == s.maxUrl
+	*task.archiveWriteCount++
+	archiveFinished := *task.archiveWriteCount == s.maxUrl
 
 	if archiveFinished {
-		defer task.archiveWriter.Close()
+		defer func() {
+			log.Print("Trying to close archive")
+			err := task.archiveWriter.Close()
+			if err != nil {
+				log.Print("Failed archive close: " + err.Error())
+			}
+		}()
 	}
 
 	f, err := task.archiveWriter.Create(filename)
