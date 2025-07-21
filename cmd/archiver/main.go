@@ -39,10 +39,11 @@ func main() {
 	r.Use(middleware.AllowContentType("application/json"))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
 	r.Route("/tasks", func(r chi.Router) {
 		r.Post("/", handler.CreateTask(srv))
 		r.Post("/{task_id}/urls", handler.AddUrlToTask(srv))
-		r.Get("/{task_id}/", handler.GetStatus(srv))
+		r.Get("/{task_id}/status", handler.GetStatus(srv))
 		r.Get("/{task_id}/archive", handler.GetArchive(srv))
 	})
 
