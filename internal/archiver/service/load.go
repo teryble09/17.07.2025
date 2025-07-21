@@ -42,6 +42,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 	if err == ErrFailedAllRetries {
 		srv.Logger.Warn("Failed to load file", "url", url)
 		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+
 		return
 	}
 

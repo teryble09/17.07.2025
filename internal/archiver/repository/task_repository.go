@@ -12,6 +12,7 @@ type TaskRepository interface {
 	Status(model.TaskID) ([]model.Url, error)
 	ChangeStatus(id model.TaskID, url string, newStatus string) error
 	LoadArchive(model.TaskID) ([]byte, error)
+	// Pass blank filename to increment count within
 	WriteToArchive(id model.TaskID, filename string, file []byte) (archiveFinished bool, err error)
 }
 

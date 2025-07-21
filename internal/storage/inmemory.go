@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
-	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -155,13 +154,11 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename string, file 
 	archiveFinished := *task.archiveWriteCount == s.maxUrl
 
 	if archiveFinished {
-		defer func() {
-			log.Print("Trying to close archive")
-			err := task.archiveWriter.Close()
-			if err != nil {
-				log.Print("Failed archive close: " + err.Error())
-			}
-		}()
+		defer task.archiveWriter.Close()
+	}
+
+	if filename == "" {
+		return archiveFinished, nil
 	}
 
 	f, err := task.archiveWriter.Create(filename)
