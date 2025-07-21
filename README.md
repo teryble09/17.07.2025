@@ -11,11 +11,13 @@ post /tasks/ создать задачу, возвращает id задачи
 {
   "task_id": "cf8af25b-493f-4d6e-aa85-80327a3ccaff"
 }
+
 post /tasks/{id}/urls добавляет url для скачивания
 Например:
 {
   "url":"https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png"
 }
+
 get /tasks/{id}/status возвращает статус задачи
 Например:
 {
@@ -26,6 +28,7 @@ get /tasks/{id}/status возвращает статус задачи
         }
     ]
 }
+
 get /tasks/{id}/archive возвращает архив
 
 Использованы паттерны:
