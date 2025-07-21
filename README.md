@@ -44,4 +44,4 @@ get /tasks/{id}/archive возвращает архив
 
 Старался делать код как можно чище и делать код потокобезопасным с помощью использования mutex
 
-telegramm: https://t.me/teryble09
+telegram: https://t.me/teryble09
