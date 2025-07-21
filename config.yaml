@@ -6,3 +6,4 @@ allowed_mime_types:
   - image/png
 retry_wait_time: 1000
 max_retry_amount: 3
+http_client_timeout: 5

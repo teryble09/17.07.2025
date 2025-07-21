@@ -15,6 +15,8 @@ type Config struct {
 	//In milliseconds
 	RetryWaitTime  int `yaml:"retry_wait_time"`
 	MaxRetryAmount int `yaml:"max_retry_amount"`
+	//In milliseconds
+	HttpClientTimeout int `yaml:"http_client_timeout"`
 }
 
 func MustLoad(configPath string) *Config {

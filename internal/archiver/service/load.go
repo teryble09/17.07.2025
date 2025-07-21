@@ -24,7 +24,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 
 	fn := func() error {
 		var err error
-		client := http.Client{Timeout: 5 * time.Second}
+		client := http.Client{Timeout: time.Duration(srv.Cfg.HttpClientTimeout * 1_000_000)}
 		filename, file, err = LoadFile(client, srv.Cfg.AllowedMIMETypes, url)
 		if err == ErrNotAllowedMimeType {
 			srv.Logger.Warn("Not allowed type", "utl", url)
@@ -113,6 +113,7 @@ func LoadFile(client http.Client, allowedMIMETypes []string, url string) (filena
 	return filename, buf.Bytes(), nil
 }
 
+// To create filename for files in the archive
 func sanitizeFilename(name string) string {
 	re := regexp.MustCompile(`[<>:"/\\|?*\x00-\x1F]`)
 	name = re.ReplaceAllString(name, "_")

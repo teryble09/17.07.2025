@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	// Ищем конфиг в корне проекта
 	_, curPath, _, _ := runtime.Caller(0)
 	curPath, found := strings.CutSuffix(curPath, "cmd/archiver/main.go")
 	if found != true {
