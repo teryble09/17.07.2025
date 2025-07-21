@@ -5,8 +5,8 @@
 
 Есть config.yaml в корне проекта, который включает в себя порт, разрешенные типы, время таймаута для скачивания, количество попыток скачивания и т.д.
 
-Реализованы эндпоинты
-post /tasks/ создать задачу, возвращает id задачи
+Реализованы эндпоинты:
+- post /tasks/ создать задачу, возвращает id задачи
 
 Например:
 
@@ -14,7 +14,7 @@ post /tasks/ создать задачу, возвращает id задачи
   "task_id": "cf8af25b-493f-4d6e-aa85-80327a3ccaff"
 }
 
-post /tasks/{id}/urls добавляет url для скачивания
+- post /tasks/{id}/urls добавляет url для скачивания
 
 Например:
 
@@ -22,7 +22,7 @@ post /tasks/{id}/urls добавляет url для скачивания
   "url":"https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png"
 }
 
-get /tasks/{id}/status возвращает статус задачи
+- get /tasks/{id}/status возвращает статус задачи
 
 Например:
 
@@ -35,7 +35,7 @@ get /tasks/{id}/status возвращает статус задачи
     ]
 }
 
-get /tasks/{id}/archive возвращает архив
+- get /tasks/{id}/archive возвращает архив
 
 Использованы паттерны:
  - reepository (см. internal/archiver/repository и internal/storage)
