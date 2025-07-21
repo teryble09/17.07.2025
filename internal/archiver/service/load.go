@@ -16,6 +16,7 @@ import (
 var (
 	ErrFailedAllRetries   = errors.New("failed all retries")
 	ErrNotAllowedMimeType = errors.New("mime type is not allowed")
+	ErrNoMimeType         = errors.New("no Content-Type set")
 )
 
 func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
@@ -27,6 +28,9 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 		filename, file, err = LoadFile(client, srv.Cfg.AllowedMIMETypes, url)
 		if err == ErrNotAllowedMimeType {
 			return true, ErrNotAllowedMimeType
+		}
+		if err == ErrNoMimeType {
+			return true, ErrNoMimeType
 		}
 		if err != nil {
 			return false, err
@@ -46,7 +50,7 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 		return
 	}
 
-	if err == ErrFailedAllRetries {
+	if err == ErrFailedAllRetries || err == ErrNoMimeType {
 		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
 		archiveFinished, _ := srv.Storage.EmptyWriteToArchive(id)
 		srv.Logger.Warn("Failed to load file", "url", url)
@@ -92,6 +96,9 @@ func checkMIMEType(client http.Client, allowedMIMETypes []string, url string) er
 	}
 	defer resp.Body.Close()
 	respMIMEType := resp.Header.Get("Content-Type")
+	if respMIMEType == "" {
+		return ErrNoMimeType
+	}
 	if slices.Contains(allowedMIMETypes, respMIMEType) {
 		return nil
 	}
