@@ -19,9 +19,11 @@ type InMemoryStorage struct {
 }
 
 type Task struct {
-	urls              []model.Url
-	archive           *bytes.Buffer
-	archiveWriter     *zip.Writer
+	urls          []model.Url
+	archive       *bytes.Buffer
+	archiveWriter *zip.Writer
+
+	// counts every attempt
 	archiveWriteCount *int
 	mutex             *sync.RWMutex
 }

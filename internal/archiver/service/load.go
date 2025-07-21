@@ -113,7 +113,6 @@ func LoadFile(client http.Client, allowedMIMETypes []string, url string) (filena
 	return filename, buf.Bytes(), nil
 }
 
-// To create filename for files in the archive
 func sanitizeFilename(name string) string {
 	re := regexp.MustCompile(`[<>:"/\\|?*\x00-\x1F]`)
 	name = re.ReplaceAllString(name, "_")
