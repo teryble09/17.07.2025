@@ -38,9 +38,9 @@ get /tasks/{id}/status возвращает статус задачи
 get /tasks/{id}/archive возвращает архив
 
 Использованы паттерны:
-  reepository (см. internal/archiver/repository и internal/storage)
-  retry (см. internal/archiver/service/load.go)
-  semaphore (см. TaskService в internal/archiver/service/service.go)
+ - reepository (см. internal/archiver/repository и internal/storage)
+ - retry (см. internal/archiver/service/load.go)
+ - semaphore (см. TaskService в internal/archiver/service/service.go)
 
 Старался делать код как можно чище и делать код потокобезопасным с помощью использования mutex
 
