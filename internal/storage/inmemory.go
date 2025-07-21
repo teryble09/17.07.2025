@@ -137,6 +137,29 @@ func (s *InMemoryStorage) LoadArchive(id model.TaskID) ([]byte, error) {
 	return task.archive.Bytes(), nil
 }
 
+func (s *InMemoryStorage) EmptyWriteToArchive(id model.TaskID) (bool, error) {
+	s.RLock()
+
+	task, ok := s.storage[id]
+	if !ok {
+		return false, repository.ErrTaskNotFound
+	}
+
+	s.RUnlock()
+
+	task.mutex.Lock()
+	defer task.mutex.Unlock()
+
+	*task.archiveWriteCount++
+	archiveFinished := *task.archiveWriteCount == s.maxUrl
+
+	if archiveFinished {
+		task.archiveWriter.Close()
+	}
+
+	return archiveFinished, nil
+}
+
 func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename string, file []byte) (bool, error) {
 	s.RLock()
 
@@ -155,10 +178,6 @@ func (s *InMemoryStorage) WriteToArchive(id model.TaskID, filename string, file 
 
 	if archiveFinished {
 		defer task.archiveWriter.Close()
-	}
-
-	if filename == "" {
-		return archiveFinished, nil
 	}
 
 	f, err := task.archiveWriter.Create(filename)

@@ -1,10 +1,11 @@
 package model
 
 const (
-	Waiting        = "waiting"
-	FailedToLoad   = "failed to load"
-	NotAllowedType = "not allowed type"
-	Archived       = "archived"
+	Waiting         = "waiting"
+	FailedToLoad    = "failed to load"
+	NotAllowedType  = "not allowed type"
+	FailedToArchive = "failed to archive"
+	Archived        = "archived"
 )
 
 type TaskID struct {

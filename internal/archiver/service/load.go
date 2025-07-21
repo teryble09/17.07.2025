@@ -15,42 +15,52 @@ import (
 
 var (
 	ErrFailedAllRetries   = errors.New("failed all retries")
-	ErrNotAllowedMimeType = errors.New("mime type is nopt allowed")
+	ErrNotAllowedMimeType = errors.New("mime type is not allowed")
 )
 
 func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 	file := []byte{}
 	filename := ""
 
-	fn := func() error {
-		var err error
+	fn := func() (stop bool, err error) {
 		client := http.Client{Timeout: time.Duration(srv.Cfg.HttpClientTimeout * 1_000_000)}
 		filename, file, err = LoadFile(client, srv.Cfg.AllowedMIMETypes, url)
 		if err == ErrNotAllowedMimeType {
-			srv.Logger.Warn("Not allowed type", "utl", url)
-			srv.Storage.ChangeStatus(id, url, model.NotAllowedType)
-			return ErrNotAllowedMimeType
+			return true, ErrNotAllowedMimeType
 		}
 		if err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return true, nil
 	}
 
 	err := Retry(fn, time.Duration(srv.Cfg.RetryWaitTime*1_000_000), srv.Cfg.MaxRetryAmount)
 
-	if err == ErrFailedAllRetries {
-		srv.Logger.Warn("Failed to load file", "url", url)
-		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+	if err == ErrNotAllowedMimeType {
+		srv.Storage.ChangeStatus(id, url, model.NotAllowedType)
+		archiveFinished, _ := srv.Storage.EmptyWriteToArchive(id)
+		srv.Logger.Warn("Trying to load file with not allowed type", "url", url)
+		if archiveFinished {
+			srv.Semaphore.Release(1)
+		}
+		return
+	}
 
+	if err == ErrFailedAllRetries {
+		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+		archiveFinished, _ := srv.Storage.EmptyWriteToArchive(id)
+		srv.Logger.Warn("Failed to load file", "url", url)
+		if archiveFinished {
+			srv.Semaphore.Release(1)
+		}
 		return
 	}
 
 	archiveFinished, err := srv.Storage.WriteToArchive(id, filename, file)
 
 	if err != nil {
-		srv.Logger.Error("Failed to write loaded file", "url", url, "error", err.Error())
-		srv.Storage.ChangeStatus(id, url, model.FailedToLoad)
+		srv.Logger.Error("Failed to write loaded file into archive", "url", url, "error", err.Error())
+		srv.Storage.ChangeStatus(id, url, model.FailedToArchive)
 		return
 	}
 
@@ -60,14 +70,15 @@ func LoadFileAndArchive(srv *TaskService, id model.TaskID, url string) {
 
 	srv.Logger.Info("Suceesfully loaded and wrote file", "url", url)
 	srv.Storage.ChangeStatus(id, url, model.Archived)
-
 }
 
-func Retry(fn func() error, wait time.Duration, maxRetries int) error {
+// fn should return false, if retries should continue, and true if they should stop,
+// and error either err from fn func if retries stopped forcefully or ErrFailedAllRetries
+func Retry(fn func() (stop bool, err error), wait time.Duration, maxRetries int) error {
 	for range maxRetries {
-		err := fn()
-		if err == nil {
-			return nil
+		stop, err := fn()
+		if stop {
+			return err
 		}
 		time.Sleep(wait)
 	}
