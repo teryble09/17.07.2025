@@ -1,4 +1,6 @@
 # 17.07.2025
+Тестовое задание, суть задания в tz.txt
+
 Для запуска:
 - go mod downoload
 - go run cmd/archiver/main.go
